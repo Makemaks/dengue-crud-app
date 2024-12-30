@@ -19,7 +19,7 @@ import {
 ChartJS.register(CategoryScale, LinearScale, BarElement, PointElement, Tooltip, Legend);
 
 const DashboardPage = () => {
-  const [dengueData1, setDengueData] = useState([]);
+  const [dengue_cases_lab3, setDengueData] = useState([]);
   const [filteredData, setFilteredData] = useState([]);
   const [selectedYear, setSelectedYear] = useState(null);
   const [selectedMonth, setSelectedMonth] = useState(null);
@@ -27,7 +27,7 @@ const DashboardPage = () => {
 
   const fetchDengueData = async () => {
     try {
-      const querySnapshot = await getDocs(collection(db, "dengueData1"));
+      const querySnapshot = await getDocs(collection(db, "dengue_cases_lab3"));
       const data = querySnapshot.docs.map((doc) => doc.data());
       setDengueData(data);
       setFilteredData(data);
@@ -41,7 +41,7 @@ const DashboardPage = () => {
   }, []);
 
   const applyFilters = () => {
-    let filtered = dengueData1;
+    let filtered = dengue_cases_lab3;
     if (selectedYear) {
       filtered = filtered.filter((item) => item.date.startsWith(selectedYear));
     }
@@ -136,7 +136,7 @@ const DashboardPage = () => {
           <div className="filter-group">
             <Dropdown
               value={selectedYear}
-              options={[...new Set(dengueData1.map((item) => item.date.split("-")[0]))].map((year) => ({
+              options={[...new Set(dengue_cases_lab3.map((item) => item.date.split("-")[0]))].map((year) => ({
                 label: year,
                 value: year,
               }))}

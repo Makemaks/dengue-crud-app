@@ -20,7 +20,7 @@ export const DengueDataProvider = ({ children }) => {
 
     setLoading(true);
     try {
-      const dengueCollection = collection(db, "dengueData1");
+      const dengueCollection = collection(db, "dengue_cases_lab3");
       const dengueSnapshot = await getDocs(dengueCollection);
       const fetchedData = dengueSnapshot.docs.map((doc) => ({
         id: doc.id,

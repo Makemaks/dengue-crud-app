@@ -14,12 +14,12 @@ const regionMapping = {
   PH03: "REGION III-CENTRAL LUZON",
   PH05: "REGION V-BICOL REGION",
   PH06: "REGION VI-WESTERN VISAYAS",
-  PH07: "REGION VII-CENTRAL VISAYAS",
-  PH08: "REGION VIII-EASTERN VISAYAS",
-  PH09: "REGION IX-ZAMBOANGA PENINSULA",
-  PH10: "REGION X-NORTHERN MINDANAO",
-  PH11: "REGION XI-DAVAO REGION",
-  PH12: "REGION XII-SOCCSKSARGEN",
+  PH07: "Region VII-CENTRAL VISAYAS",
+  PH08: "Region VIII-EASTERN VISAYAS",
+  PH09: "Region IX-ZAMBOANGA PENINSULA",
+  PH10: "Region X-NORTHERN MINDANAO",
+  PH11: "Region XI-DAVAO REGION",
+  PH12: "Region XII-SOCCSKSARGEN",
   PH13: "CARAGA",
   PH14: "BARMM",
   PH15: "CAR",
@@ -32,7 +32,6 @@ const normalizeRegion = (region) => {
   if (!region || typeof region !== "string") {
     return null;
   }
-
   return Object.keys(regionMapping).find(
     (code) => regionMapping[code].toLowerCase() === region.toLowerCase()
   );
@@ -41,6 +40,8 @@ const normalizeRegion = (region) => {
 const MapComponent = () => {
   const [geoData, setGeoData] = useState(null); // Enriched GeoJSON data
   const [loading, setLoading] = useState(false); // Loading state
+  const [meanCases, setMeanCases] = useState(0);
+  const [meanDeaths, setMeanDeaths] = useState(0);
 
   useEffect(() => {
     const fetchAndProcessData = async () => {
@@ -48,18 +49,18 @@ const MapComponent = () => {
 
       try {
         // Fetch dengue data from Firebase
-        const dengueCollection = collection(db, "dengueData1");
+        const dengueCollection = collection(db, "dengue_cases_lab3");
         const dengueSnapshot = await getDocs(dengueCollection);
-        const dengueData1 = dengueSnapshot.docs.map((doc) => ({
+        const dengue_cases_lab3 = dengueSnapshot.docs.map((doc) => ({
           id: doc.id,
           ...doc.data(),
           date: new Date(doc.data().date),
         }));
 
-        console.log("Fetched Dengue Data:", dengueData1);
+        console.log("Fetched Dengue Data:", dengue_cases_lab3);
 
         // Aggregate dengue cases and deaths by GeoJSON region codes
-        const regionCases = dengueData1.reduce((acc, entry) => {
+        const regionCases = dengue_cases_lab3.reduce((acc, entry) => {
           const { region, cases, deaths } = entry;
           const regionCode = normalizeRegion(region);
           if (regionCode) {
@@ -71,6 +72,20 @@ const MapComponent = () => {
         }, {});
 
         console.log("Processed Region Cases:", regionCases);
+
+        // Calculate the mean for cases and deaths
+        const totalCases = Object.values(regionCases).reduce(
+          (sum, r) => sum + r.cases,
+          0
+        );
+        const totalDeaths = Object.values(regionCases).reduce(
+          (sum, r) => sum + r.deaths,
+          0
+        );
+        const regionCount = Object.keys(regionCases).length;
+
+        setMeanCases(totalCases / regionCount || 0);
+        setMeanDeaths(totalDeaths / regionCount || 0);
 
         // Enrich GeoJSON with dengue cases and deaths
         const enrichedData = { ...philippinesGeoJSON };
@@ -102,24 +117,21 @@ const MapComponent = () => {
     fetchAndProcessData();
   }, []); // Empty dependency array ensures it runs only once
 
-  // Function to determine fill color based on case count
+  // Function to determine fill color based on case count compared to the mean
   const getColor = (cases) => {
-    return cases > 1000
-      ? "#800026"
-      : cases > 500
-      ? "#BD0026"
-      : cases > 200
-      ? "#E31A1C"
-      : cases > 100
-      ? "#FC4E2A"
-      : cases > 50
-      ? "#FD8D3C"
-      : cases > 20
-      ? "#FEB24C"
-      : cases > 10
-      ? "#FED976"
-      : "#FFEDA0";
+    return cases > meanCases * 1.5
+      ? "#FF0000" // Bright Red for significantly high cases
+      : cases > meanCases
+      ? "#FF4500" // Orange-Red for high cases
+      : cases > meanCases * 0.75
+      ? "#FFA500" // Orange for moderately high cases
+      : cases > meanCases * 0.5
+      ? "#FFFF00" // Yellow for moderate cases
+      : cases > meanCases * 0.25
+      ? "#ADFF2F" // Light Green for low-moderate cases
+      : "#00FF00"; // Green for very low cases
   };
+  
 
   // Style function for GeoJSON features
   const style = (feature) => ({
@@ -140,7 +152,9 @@ const MapComponent = () => {
       layer.bindTooltip(
         `<strong>${regionName}</strong><br/>
         Cases: ${cases}<br/>
-        Deaths: ${deaths}`,
+        Deaths: ${deaths}<br/>
+        Avg Cases: ${meanCases.toFixed(2)}<br/>
+        Avg Deaths: ${meanDeaths.toFixed(2)}`,
         { direction: "auto" }
       );
     } else {

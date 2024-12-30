@@ -18,7 +18,7 @@ const AddDengueData = ({ visible, onHide }) => {
 
   const handleSubmit = async () => {
     try {
-      await addDoc(collection(db, "dengueData1"), {
+      await addDoc(collection(db, "dengue_cases_lab3"), {
         location,
         cases: cases || 0,
         deaths: deaths || 0,

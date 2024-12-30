@@ -51,7 +51,7 @@ const DenguePage = () => {
               continue;
             }
 
-            await addDoc(collection(db, "dengueData1"), {
+            await addDoc(collection(db, "dengue_cases_lab3"), {
               location: row.loc || "",
               cases: parseInt(row.cases) || 0,
               deaths: parseInt(row.deaths) || 0,

@@ -11,11 +11,11 @@ import { doc, deleteDoc } from "firebase/firestore"; // Import Firestore delete 
 import { db } from "../firebase"; // Firestore instance
 
 const DengueDataList = () => {
-  const { data: dengueData1, fetchData, loading } = useDengueData(); // Access data, fetch function, and loading state
+  const { data: dengue_cases_lab3, fetchData, loading } = useDengueData(); // Access data, fetch function, and loading state
   const [normalizedData, setNormalizedData] = React.useState([]);
   const [filters, setFilters] = React.useState({
     global: { value: null, matchMode: "contains" },
-    location: { value: null, matchMode: "contains" },
+    loc: { value: null, matchMode: "contains" },
     regions: { value: null, matchMode: "contains" },
     cases: { value: null, matchMode: "equals" },
     deaths: { value: null, matchMode: "equals" },
@@ -29,9 +29,9 @@ const DengueDataList = () => {
   }, [fetchData]);
 
   useEffect(() => {
-    if (dengueData1) {
+    if (dengue_cases_lab3) {
       // Normalize the date field to ensure consistency
-      const normalized = dengueData1.map((item) => {
+      const normalized = dengue_cases_lab3.map((item) => {
         let formattedDate = null;
 
         if (item.date) {
@@ -51,13 +51,13 @@ const DengueDataList = () => {
 
       setNormalizedData(normalized);
     }
-  }, [dengueData1]);
+  }, [dengue_cases_lab3]);
 
   const handleDelete = async (id) => {
     if (window.confirm("Are you sure you want to delete this record?")) {
       try {
         // Delete the document from Firestore
-        await deleteDoc(doc(db, "dengueData1", id));
+        await deleteDoc(doc(db, "dengue_cases_lab3", id));
         // Fetch updated data after deletion
         fetchData(true); // Force refresh data after deletion
         // Show success message
@@ -145,12 +145,12 @@ const DengueDataList = () => {
         header={header}
         filters={filters}
         onFilter={(e) => setFilters(e.filters)}
-        globalFilterFields={["location", "regions", "cases", "deaths"]}
+        globalFilterFields={["loc", "regions", "cases", "deaths"]}
         emptyMessage="No dengue data found."
         removableSort
       >
         <Column
-          field="location"
+          field="loc"
           header="Location"
           sortable
           filter
